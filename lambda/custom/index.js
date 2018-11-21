@@ -1,7 +1,7 @@
 'use strict';
 
 const Alexa = require('alexa-sdk');
-const story = 'Escape the Office.html';
+const story = 'NorthPoleAdventure.html';
 const TableName = null // story.replace('.html','').replace(/\s/g, "-");
 var $twine = null;
 const linksRegex = /\[\[([^\|\]]*)\|?([^\]]*)\]\]/g;
@@ -68,6 +68,7 @@ const handlers = {
     // clear session attributes
     this.event.session.attributes['room'] = undefined;
     this.event.session.attributes['visited'] = [];
+    this.event.session.attributes['inventory'] = [];
     this.emit('WhereAmI');
   },
   'WhereAmI': function() {
@@ -75,6 +76,8 @@ const handlers = {
     if (this.event.session.attributes['room'] === undefined) {
       // you just started so you are in the first room
       this.event.session.attributes['room'] = $twine[0]['$']['pid'];
+      this.event.session.attributes['inventory'] = [];
+
       speechOutput = `Welcome to ${story.replace('.html','')}. Lets start your game. `;
     }
 
@@ -83,7 +86,16 @@ const handlers = {
 
     // get displayable text
     // e.g "You are here. [[Go South|The Hall]]" -> "You are here. Go South"
-    var displayableText = room['_'];
+    // var displayableText = room['_'];
+
+    //Remove collectable items from the description of the room. 
+    var objectRegex = /\$\w+/g;
+    var itemMatches = room['_'].match(objectRegex);
+    var displayableText = room['_'].replace(objectRegex,"");
+
+    displayableText = parseIf(room['_'],this.event.session.attributes['inventory']);
+    // console.log(displayableText);
+
     linksRegex.lastIndex = 0;
     let m;
     while ((m = linksRegex.exec(displayableText)) !== null) {
@@ -122,7 +134,7 @@ const handlers = {
     }
     if (this.event.session.attributes['visited'].includes(room['$']['pid'])) {
       console.log(`WhereAmI: player is revisiting`);
-      speechOutput = reducedContent;
+      // speechOutput = reducedContent;
     } else {
       this.event.session.attributes['visited'].push(room['$']['pid']);
     }
@@ -156,23 +168,57 @@ const handlers = {
     }
     this.emit(':responseReady');
   },
-  'Go': function() {
-    console.log(`Go`);
+  'Get': function() {
     var slotValues = getSlotValues(this.event.request.intent.slots);
-    followLink(this.event, [slotValues['direction']['resolved'], slotValues['direction']['synonym']]);
-    this.emit('WhereAmI');
+    let p = followLink(this.event, [slotValues['object_name']['resolved']])
+    
+    var speechOutput = "You can't get that"
+    var cardTitle = "Trying to get " + slotValues['object_name']['resolved'];
+    var cardContent = speechOutput;
+
+    var iKey = checkInventory(slotValues['object_name']['resolved'],
+                  this.event.session.attributes['inventory']);
+
+    console.log("Trying to get");
+
+    if(iKey > -1){
+      //You already have that.
+      console.log("Already in inventory");
+      speechOutput = "You already have that.";
+      cardContent = "In your inventory";
+    }
+    else if(p != undefined && p != false && p['$'].tags.indexOf("gettable") > -1){
+      //That's gettable
+      console.log("Exists and Gettable");
+      
+      //add to inventory.
+      this.event.session.attributes['inventory'].push(p);
+      speechOutput = "You got " + slotValues['object_name']['resolved'];
+      cardContent = speechOutput;  
+    }
+    
+    this.response.speak(speechOutput)
+      .listen()
+      .cardRenderer(cardTitle, cardContent); //, imageObj
+    this.emit(':responseReady');
   },
-  'Page': function() {
-    // old-school cyoa: "to go south turn to page 20"..you say, "page 20"
-    console.log(`Page`);
-    followLink(this.event, this.event.request.intent.slots.number.value);
-    this.emit('WhereAmI');
-  },
-  'Fight': function() {
-    console.log(`Fight`);
-    followLink(this.event, [this.event.request.intent.slots.npc.value, 'fight']);
-    this.emit('WhereAmI');
-  },
+  // 'Go': function() {
+  //   console.log(`Go`);
+  //   var slotValues = getSlotValues(this.event.request.intent.slots);
+  //   followLink(this.event, [slotValues['direction']['resolved'], slotValues['direction']['synonym']]);
+  //   this.emit('WhereAmI');
+  // },
+  // 'Page': function() {
+  //   // old-school cyoa: "to go south turn to page 20"..you say, "page 20"
+  //   console.log(`Page`);
+  //   followLink(this.event, this.event.request.intent.slots.number.value);
+  //   this.emit('WhereAmI');
+  // },
+  // 'Fight': function() {
+  //   console.log(`Fight`);
+  //   followLink(this.event, [this.event.request.intent.slots.npc.value, 'fight']);
+  //   this.emit('WhereAmI');
+  // },
   'AMAZON.HelpIntent': function() {
     var speechOutput = 'This is the Sample Gamebook Skill. ';
     var reprompt = 'Say where am I, to hear me speak.';
@@ -228,13 +274,14 @@ const handlers = {
   'Unhandled': function() {
     // handle any intent in interaction model with no handler code
     console.log(`Unhandled`);
-    followLink(this.event, this.event.request.intent.name);
+    var new_passage = followLink(this.event, this.event.request.intent.name);
+    this.event.session.attributes['room'] = new_passage['$'].pid;
     this.emit('WhereAmI');
   },
   'SessionEndedRequest': function() {
     // "exit", timeout or error. Cannot send back a response
     console.log(`Session ended: ${this.event.request.reason}`);
-  },
+  }
 };
 
 function currentRoom(event) {
@@ -248,6 +295,47 @@ function currentRoom(event) {
   return currentRoomData;
 }
 
+//Checks to see if the requested link exists.
+// function getPassage(event, direction_or_array) {
+//   var directions = [];
+//   if (direction_or_array instanceof Array) {
+//     directions = direction_or_array;
+//   } else {
+//     directions = [direction_or_array];
+//   }
+
+//   console.log(directions);
+
+//   var room = currentRoom(event);
+//   var result = undefined;
+//   directions.every(function(direction, index, _arr) {
+//     console.log(`getPassage: try '${direction}' from ${room['$']['name']}`);
+//     var directionRegex = new RegExp(`.*${direction}.*`, 'i');
+//     let links;
+//     linksRegex.lastIndex = 0;
+//     while ((links = linksRegex.exec(room['_'])) !== null) {
+//       if (links.index === linksRegex.lastIndex) {
+//         linksRegex.lastIndex++;
+//       }
+//       result = links[1].match(directionRegex);
+//       var target = links[2] || links[1];
+//       console.log(`getPassage: check ${links[1]} (${target}) for ${direction} => ${result} `);
+//       if (result) {
+//         console.log(`getPassage: That would be ${target}`);
+//         for (var i = 0; i < $twine.length; i++) {
+//           if ($twine[i]['$']['name'].toLowerCase() === target.toLowerCase()) {
+//             return $twine[i]['$'];
+//             // event.session.attributes['room'] = $twine[i]['$']['pid'];
+//             break;
+//           }
+//         }
+//         break;
+//       }
+//     }
+//     return !result;
+//   });
+// }
+
 function followLink(event, direction_or_array) {
   var directions = [];
   if (direction_or_array instanceof Array) {
@@ -255,12 +343,16 @@ function followLink(event, direction_or_array) {
   } else {
     directions = [direction_or_array];
   }
+  
   var room = currentRoom(event);
   var result = undefined;
+  var result_passage = undefined;
+
   directions.every(function(direction, index, _arr) {
     console.log(`followLink: try '${direction}' from ${room['$']['name']}`);
     var directionRegex = new RegExp(`.*${direction}.*`, 'i');
     let links;
+    
     linksRegex.lastIndex = 0;
     while ((links = linksRegex.exec(room['_'])) !== null) {
       if (links.index === linksRegex.lastIndex) {
@@ -273,7 +365,7 @@ function followLink(event, direction_or_array) {
         console.log(`followLink: That would be ${target}`);
         for (var i = 0; i < $twine.length; i++) {
           if ($twine[i]['$']['name'].toLowerCase() === target.toLowerCase()) {
-            event.session.attributes['room'] = $twine[i]['$']['pid'];
+            result_passage = $twine[i]; //return the found passage.
             break;
           }
         }
@@ -282,6 +374,8 @@ function followLink(event, direction_or_array) {
     }
     return !result;
   });
+  
+  return result_passage;
 }
 
 //COOKBOOK HELPER FUNCTIONS
@@ -330,4 +424,49 @@ function getSlotValues(filledSlots) {
   }, this);
   //console.log("slot values: " + JSON.stringify(slotValues));
   return slotValues;
+}
+
+//parses and includes if blocks in text.
+function parseIf(inputText,gameVars) {
+  var findIf = /(<<if (\!?\w+?)>>.+?<<endif>>)/g;
+  var parseIf = /(<<if (\!?\w+?)>>(.+?)<<endif>>)/;
+
+  var matchIf = inputText.match(findIf);
+
+  if(matchIf != null) {
+    
+    //Check if the if variable is true or false
+    matchIf.forEach(match => {
+      var m = match.match(parseIf);
+      var original = m[1];
+      var prop = (m[2].substring(0,1) != "!") ? m[2] : m[2].substring(1); 
+      var negate = m[2].substring(0,1) == "!";
+      var text = m[3];
+
+      if(gameVars.indexOf(prop) != -1 && negate == false || gameVars.indexOf(prop) == -1 && negate == true){
+        //insert the text
+        inputText = inputText.replace(m[1],text);
+      }else{
+        //remove the text
+        inputText = inputText.replace(m[1],"");
+      }
+      
+    });
+    
+  }
+  return inputText;
+}
+
+//Checks to see if this object is in your inventory.
+//Returns the index of the item or -1.
+function checkInventory(objectName,inventory) {
+  
+  //Assume we won't find it.
+  var objectIndex = -1;
+  inventory.forEach((o,i)=>{
+    if(objectName === o['$'].name){
+      objectIndex = i;
+    }
+  });
+  return objectIndex;
 }
