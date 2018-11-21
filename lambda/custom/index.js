@@ -170,24 +170,21 @@ const handlers = {
   },
   'Get': function() {
     var slotValues = getSlotValues(this.event.request.intent.slots);
-    let p = followLink(this.event, [slotValues['object_name']['resolved']])
+    let passage= followLink(this.event, [slotValues['object_name']['resolved']]);
     
     var speechOutput = "You can't get that"
     var cardTitle = "Trying to get " + slotValues['object_name']['resolved'];
     var cardContent = speechOutput;
 
-    var iKey = checkInventory(slotValues['object_name']['resolved'],
-                  this.event.session.attributes['inventory']);
-
-    console.log("Trying to get");
-
-    if(iKey > -1){
+    console.log("Trying to get " + slotValues['object_name']['resolved']);
+    
+    if(inventoryNames(this.event).indexOf(slotValues['object_name']['resolved']) > -1){
       //You already have that.
       console.log("Already in inventory");
       speechOutput = "You already have that.";
       cardContent = "In your inventory";
     }
-    else if(p != undefined && p != false && p['$'].tags.indexOf("gettable") > -1){
+    else if(passage!= undefined && passage!= false && p['$'].tags.indexOf("gettable") > -1){
       //That's gettable
       console.log("Exists and Gettable");
       
@@ -196,7 +193,7 @@ const handlers = {
       speechOutput = "You got " + slotValues['object_name']['resolved'];
       cardContent = speechOutput;  
     }
-    
+
     this.response.speak(speechOutput)
       .listen()
       .cardRenderer(cardTitle, cardContent); //, imageObj
@@ -295,47 +292,6 @@ function currentRoom(event) {
   return currentRoomData;
 }
 
-//Checks to see if the requested link exists.
-// function getPassage(event, direction_or_array) {
-//   var directions = [];
-//   if (direction_or_array instanceof Array) {
-//     directions = direction_or_array;
-//   } else {
-//     directions = [direction_or_array];
-//   }
-
-//   console.log(directions);
-
-//   var room = currentRoom(event);
-//   var result = undefined;
-//   directions.every(function(direction, index, _arr) {
-//     console.log(`getPassage: try '${direction}' from ${room['$']['name']}`);
-//     var directionRegex = new RegExp(`.*${direction}.*`, 'i');
-//     let links;
-//     linksRegex.lastIndex = 0;
-//     while ((links = linksRegex.exec(room['_'])) !== null) {
-//       if (links.index === linksRegex.lastIndex) {
-//         linksRegex.lastIndex++;
-//       }
-//       result = links[1].match(directionRegex);
-//       var target = links[2] || links[1];
-//       console.log(`getPassage: check ${links[1]} (${target}) for ${direction} => ${result} `);
-//       if (result) {
-//         console.log(`getPassage: That would be ${target}`);
-//         for (var i = 0; i < $twine.length; i++) {
-//           if ($twine[i]['$']['name'].toLowerCase() === target.toLowerCase()) {
-//             return $twine[i]['$'];
-//             // event.session.attributes['room'] = $twine[i]['$']['pid'];
-//             break;
-//           }
-//         }
-//         break;
-//       }
-//     }
-//     return !result;
-//   });
-// }
-
 function followLink(event, direction_or_array) {
   var directions = [];
   if (direction_or_array instanceof Array) {
@@ -428,16 +384,17 @@ function getSlotValues(filledSlots) {
 
 //parses and includes if blocks in text.
 function parseIf(inputText,gameVars) {
-  var findIf = /(<<if (\!?\w+?)>>.+?<<endif>>)/g;
-  var parseIf = /(<<if (\!?\w+?)>>(.+?)<<endif>>)/;
+  var findIfRegex = /(<<if (\!?\w+?)>>.+?<<endif>>)/g;
+  var parseIfRegex = /(<<if (\!?\w+?)>>(.+?)<<endif>>)/;
 
-  var matchIf = inputText.match(findIf);
+  //First, find all of the if statements in the block.
+  var matchIf = inputText.match(findIfRegex);
 
   if(matchIf != null) {
     
     //Check if the if variable is true or false
     matchIf.forEach(match => {
-      var m = match.match(parseIf);
+      var m = match.match(parseIfRegex);
       var original = m[1];
       var prop = (m[2].substring(0,1) != "!") ? m[2] : m[2].substring(1); 
       var negate = m[2].substring(0,1) == "!";
@@ -456,6 +413,14 @@ function parseIf(inputText,gameVars) {
   }
   return inputText;
 }
+
+//returns an array of names in inventory
+function inventoryNames(event){
+  return event.session.attributes['inventory'].map(o=>{
+    return o['$'].name;
+  });
+}
+
 
 //Checks to see if this object is in your inventory.
 //Returns the index of the item or -1.
