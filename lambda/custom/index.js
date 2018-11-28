@@ -69,6 +69,7 @@ const handlers = {
     this.event.session.attributes['room'] = undefined;
     this.event.session.attributes['visited'] = [];
     this.event.session.attributes['inventory'] = [];
+    this.event.session.attributes['progress'] =[];
     this.emit('WhereAmI');
   },
   'WhereAmI': function() {
@@ -77,6 +78,7 @@ const handlers = {
       // you just started so you are in the first room
       this.event.session.attributes['room'] = $twine[0]['$']['pid'];
       this.event.session.attributes['inventory'] = [];
+      this.event.session.attributes['progress'] =[];
 
       speechOutput = `Welcome to ${story.replace('.html','')}. Lets start your game. `;
     }
@@ -93,8 +95,9 @@ const handlers = {
     var itemMatches = room['_'].match(objectRegex);
     var displayableText = room['_'].replace(objectRegex,"");
 
-    displayableText = parseIf(room['_'],this.event.session.attributes['inventory']);
-    // console.log(displayableText);
+    let inven = inventoryNames(this.event);
+    
+    displayableText = parseIf(room['_'],inven);
 
     linksRegex.lastIndex = 0;
     let m;
@@ -184,12 +187,12 @@ const handlers = {
       speechOutput = "You already have that.";
       cardContent = "In your inventory";
     }
-    else if(passage!= undefined && passage!= false && p['$'].tags.indexOf("gettable") > -1){
+    else if(passage!= undefined && passage!= false && passage['$'].tags.indexOf("gettable") > -1){
       //That's gettable
       console.log("Exists and Gettable");
       
       //add to inventory.
-      this.event.session.attributes['inventory'].push(p);
+      this.event.session.attributes['inventory'].push(passage);
       speechOutput = "You got " + slotValues['object_name']['resolved'];
       cardContent = speechOutput;  
     }
@@ -199,23 +202,66 @@ const handlers = {
       .cardRenderer(cardTitle, cardContent); //, imageObj
     this.emit(':responseReady');
   },
-  // 'Go': function() {
-  //   console.log(`Go`);
-  //   var slotValues = getSlotValues(this.event.request.intent.slots);
-  //   followLink(this.event, [slotValues['direction']['resolved'], slotValues['direction']['synonym']]);
-  //   this.emit('WhereAmI');
-  // },
-  // 'Page': function() {
-  //   // old-school cyoa: "to go south turn to page 20"..you say, "page 20"
-  //   console.log(`Page`);
-  //   followLink(this.event, this.event.request.intent.slots.number.value);
-  //   this.emit('WhereAmI');
-  // },
-  // 'Fight': function() {
-  //   console.log(`Fight`);
-  //   followLink(this.event, [this.event.request.intent.slots.npc.value, 'fight']);
-  //   this.emit('WhereAmI');
-  // },
+  'Go': function() {
+    console.log(`Go`);
+    var slotValues = getSlotValues(this.event.request.intent.slots);
+    var new_passage = followLink(this.event, slotValues['location']['resolved']);
+    if(new_passage != undefined && new_passage['$'].tags.indexOf("place") > -1) {
+      this.event.session.attributes['room'] = new_passage['$'].pid;
+      this.emit('WhereAmI');
+    }else{
+      //can't go there.
+      var speechOutput = "Sorry, you can't go there.";
+      var cardTitle = speechOutput;
+      var cardContent = "Try something else";
+
+      this.response.speak(speechOutput)
+        .listen("What would you like to do?")
+        .cardRenderer(cardTitle, cardContent);
+    }
+  },
+  'Use': function(){
+    // Use _object_ on _subject_
+    var slotValues = getSlotValues(this.event.request.intent.slots);
+    console.log(slotValues);
+    
+    //First check that you have object
+    var hasObject = (inventoryNames(this.event).indexOf(slotValues.object.resolved) > -1);
+
+    //Next check that subject is accessible from here
+    var subject = followLink(this.event, slotValues['subject']['resolved']);
+    var subjectHere = (subject != undefined && subject['$'].tags.indexOf("usable") > -1 )
+
+    var speechOutput;
+    var cardTitle;
+    var cardContent;
+
+    if(hasObject == false){
+      //Say that you don't have it.
+      speechOutput = "You don't have " + slotValues.object.resolved + " in your inventory";
+      cardTitle = "Don't have that";
+      cardContent = speechOutput;
+    }else if(subjectHere == false){
+      //say that that's not here.
+      speechOutput = slotValues.subject.resolved + " isn't here.";
+      cardTitle = "Not here";
+      cardContent = speechOutput;
+    }else{
+      var usage = parseUse(subject, slotValues.object.resolved);
+      speechOutput = ""; //slotValues.subject.resolved + " isn't here.";
+      cardTitle = "";
+      cardContent = speechOutput;
+    }
+
+    //Get the text from subject 
+    // This text will probably look like <<use water>> You pour the water on...<<enduse>
+   
+    this.response.speak(speechOutput)
+    .listen("What would you like to do?")
+    .cardRenderer(cardTitle, cardContent);
+    //Output the current location.
+    
+  },
   'AMAZON.HelpIntent': function() {
     var speechOutput = 'This is the Sample Gamebook Skill. ';
     var reprompt = 'Say where am I, to hear me speak.';
@@ -384,8 +430,8 @@ function getSlotValues(filledSlots) {
 
 //parses and includes if blocks in text.
 function parseIf(inputText,gameVars) {
-  var findIfRegex = /(<<if (\!?\w+?)>>.+?<<endif>>)/g;
-  var parseIfRegex = /(<<if (\!?\w+?)>>(.+?)<<endif>>)/;
+  var findIfRegex =  /(<<if (\!?\w+?)>>[\s\S]+?<<endif>>)/g;
+  var parseIfRegex = /(<<if (\!?\w+?)>>([\s\S]+?)<<endif>>)/;
 
   //First, find all of the if statements in the block.
   var matchIf = inputText.match(findIfRegex);
@@ -396,8 +442,12 @@ function parseIf(inputText,gameVars) {
     matchIf.forEach(match => {
       var m = match.match(parseIfRegex);
       var original = m[1];
+      
+      //The property we're testing against
       var prop = (m[2].substring(0,1) != "!") ? m[2] : m[2].substring(1); 
+      //whether we're checking to see if we have (done) it or not.
       var negate = m[2].substring(0,1) == "!";
+      //The text enclosed in the if statement.
       var text = m[3];
 
       if(gameVars.indexOf(prop) != -1 && negate == false || gameVars.indexOf(prop) == -1 && negate == true){
@@ -414,13 +464,19 @@ function parseIf(inputText,gameVars) {
   return inputText;
 }
 
+//returns the use text from the passage text.
+//returns null if no match.
+function parseUse(inputText, object) {
+  var useMatch = new RegExp("<<use " + object + ">>([\\s\\S]+?)<<enduse>>","gim");
+  return useMatch.exec(inputText["_"]);
+}
+
 //returns an array of names in inventory
 function inventoryNames(event){
   return event.session.attributes['inventory'].map(o=>{
     return o['$'].name;
   });
 }
-
 
 //Checks to see if this object is in your inventory.
 //Returns the index of the item or -1.

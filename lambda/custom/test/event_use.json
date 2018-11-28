@@ -1,0 +1,129 @@
+{
+	"version": "1.0",
+	"session": {
+		"new": false,
+		"sessionId": "amzn1.echo-api.session.d025a588-9fc8-4e0b-ad06-bbb224a45ff6",
+		"application": {
+			"applicationId": "amzn1.ask.skill.1f1a494b-6425-48e9-b31f-edd1cf55fb6f"
+		},
+		"attributes": {
+			"visited": [
+				"1",
+                "3",
+                "2"
+			],
+			"progress": [],
+			"inventory": [
+				{
+					"_": "A bucket of water",
+					"$": {
+						"pid": "8",
+						"name": "water",
+						"tags": "gettable",
+						"position": "320,459",
+						"size": "100,100"
+					}
+				}
+			],
+			"room": "2"
+		},
+		"user": {
+			"userId": "amzn1.ask.account.AG6TOZOOZNWDFGXPMVCCABZY5KDEAQO6EHS4EQJB4SJQ4FL3ITFQD24BVNI55L54KSMEUMDNBAJMB7XVV2NSYL5NQEDBCZGOGJYHNEZIIVFKDV6EZLI6BO2REIRXIH4I2OMVINWGE75TR5FY6SXV7BVZKMONAJ7MNEYOJIJHSYOLX2IDXJ7FXMJGD3BMEYDPAJ2TAQUY5ZOTHTI"
+		}
+	},
+	"context": {
+		"System": {
+			"application": {
+				"applicationId": "amzn1.ask.skill.1f1a494b-6425-48e9-b31f-edd1cf55fb6f"
+			},
+			"user": {
+				"userId": "amzn1.ask.account.AG6TOZOOZNWDFGXPMVCCABZY5KDEAQO6EHS4EQJB4SJQ4FL3ITFQD24BVNI55L54KSMEUMDNBAJMB7XVV2NSYL5NQEDBCZGOGJYHNEZIIVFKDV6EZLI6BO2REIRXIH4I2OMVINWGE75TR5FY6SXV7BVZKMONAJ7MNEYOJIJHSYOLX2IDXJ7FXMJGD3BMEYDPAJ2TAQUY5ZOTHTI"
+			},
+			"device": {
+				"deviceId": "amzn1.ask.device.AH7OBKDNU2XWXW6DWZ7XWOY6A2YLMX573TKG45RD6FW5SASEJ4KWWLGFKWJSABNYNJFUZNFX2DPZNI6TRLJ22AWJWOBY52VUEKQ553KU7MOVWZPFYBKQOJPVWNRIMMUSTQR3KOACEQ6OYEPBZZSGZ52IKFOQ",
+				"supportedInterfaces": {}
+			},
+			"apiEndpoint": "https://api.amazonalexa.com",
+			"apiAccessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjEifQ.eyJhdWQiOiJodHRwczovL2FwaS5hbWF6b25hbGV4YS5jb20iLCJpc3MiOiJBbGV4YVNraWxsS2l0Iiwic3ViIjoiYW16bjEuYXNrLnNraWxsLjFmMWE0OTRiLTY0MjUtNDhlOS1iMzFmLWVkZDFjZjU1ZmI2ZiIsImV4cCI6MTU0Mjk2MjExMCwiaWF0IjoxNTQyOTU4NTEwLCJuYmYiOjE1NDI5NTg1MTAsInByaXZhdGVDbGFpbXMiOnsiY29uc2VudFRva2VuIjpudWxsLCJkZXZpY2VJZCI6ImFtem4xLmFzay5kZXZpY2UuQUg3T0JLRE5VMlhXWFc2RFdaN1hXT1k2QTJZTE1YNTczVEtHNDVSRDZGVzVTQVNFSjRLV1dMR0ZLV0pTQUJOWU5KRlVaTkZYMkRQWk5JNlRSTEoyMkFXSldPQlk1MlZVRUtRNTUzS1U3TU9WV1pQRllCS1FPSlBWV05SSU1NVVNUUVIzS09BQ0VRNk9ZRVBCWlpTR1o1MklLRk9RIiwidXNlcklkIjoiYW16bjEuYXNrLmFjY291bnQuQUc2VE9aT09aTldERkdYUE1WQ0NBQlpZNUtERUFRTzZFSFM0RVFKQjRTSlE0RkwzSVRGUUQyNEJWTkk1NUw1NEtTTUVVTUROQkFKTUI3WFZWMk5TWUw1TlFFREJDWkdPR0pZSE5FWklJVkZLRFY2RVpMSTZCTzJSRUlSWElINEkyT01WSU5XR0U3NVRSNUZZNlNYVjdCVlpLTU9OQUo3TU5FWU9KSUpIU1lPTFgySURYSjdGWE1KR0QzQk1FWURQQUoyVEFRVVk1Wk9USFRJIn19.JoPVln4X5ucQt1YY2n6c6Ncyk9cNv6ZzSQ-G5Q9tNlJNmu56lt3JavDA3GJDxLryDT7T0yAC_q9kAyUrZUYoKbBMg5pVNx-lxNnpPnoJa8ENCZ1pXP7Du94sUN_sAe7ZVbbqD7LQr9-qJAtr20R7Tg8l_01DC8StGZqd6_uU4GJc8JNcORQ9IIpptNE5awLqagKyjCxqruMD90RcNaIUueCBXbQOJrpga0tLUU2Bq0RaSpBL3ddKRRHvulqSo0F5BwaJ8KD7e0yzC5uJh9_ysXBp8BZL9cBuUwMUJ_sIgueh5y2_NLyLOfHmbFBzB6Uu_AQL72dld_ho1C-vXC2Qeg"
+		},
+		"Viewport": {
+			"experiences": [
+				{
+					"arcMinuteWidth": 246,
+					"arcMinuteHeight": 144,
+					"canRotate": false,
+					"canResize": false
+				}
+			],
+			"shape": "RECTANGLE",
+			"pixelWidth": 1024,
+			"pixelHeight": 600,
+			"dpi": 160,
+			"currentPixelWidth": 1024,
+			"currentPixelHeight": 600,
+			"touch": [
+				"SINGLE"
+			]
+		}
+	},
+	"request": {
+		"type": "IntentRequest",
+		"requestId": "amzn1.echo-api.request.8c1c8220-332e-42a2-bb27-1b91559f6301",
+		"timestamp": "2018-11-23T07:35:10Z",
+		"locale": "en-US",
+		"intent": {
+			"name": "Use",
+			"confirmationStatus": "NONE",
+			"slots": {
+				"subject": {
+					"name": "subject",
+					"value": "dasher",
+					"resolutions": {
+						"resolutionsPerAuthority": [
+							{
+								"authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.1f1a494b-6425-48e9-b31f-edd1cf55fb6f.SUBJECTS",
+								"status": {
+									"code": "ER_SUCCESS_MATCH"
+								},
+								"values": [
+									{
+										"value": {
+											"name": "dasher",
+											"id": "841705f979cb7a3f497f9464b116ca9e"
+										}
+									}
+								]
+							}
+						]
+					},
+					"confirmationStatus": "NONE",
+					"source": "USER"
+				},
+				"object": {
+					"name": "object",
+					"value": "key",
+					"resolutions": {
+						"resolutionsPerAuthority": [
+							{
+								"authority": "amzn1.er-authority.echo-sdk.amzn1.ask.skill.1f1a494b-6425-48e9-b31f-edd1cf55fb6f.OBJECTS",
+								"status": {
+									"code": "ER_SUCCESS_MATCH"
+								},
+								"values": [
+									{
+										"value": {
+											"name": "key",
+											"id": "9460370bb0ca1c98a779b1bcc6861c2c"
+										}
+									}
+								]
+							}
+						]
+					},
+					"confirmationStatus": "NONE",
+					"source": "USER"
+				}
+			}
+		}
+	}
+}

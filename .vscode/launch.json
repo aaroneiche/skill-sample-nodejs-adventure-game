@@ -14,7 +14,7 @@
                 "-l",
                 "index.js",
                 "-e",
-                "test/event_get.json"
+                "test/event_use.json"
             ]
         },
         {
