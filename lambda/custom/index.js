@@ -248,18 +248,18 @@ const handlers = {
       cardContent = speechOutput;
     }else{
       var usage = parseUse(subject, slotValues.object.resolved);
-      speechOutput = ""; //slotValues.subject.resolved + " isn't here.";
-      cardTitle = "";
+      speechOutput = usage[1];
+      cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
+
+      
     }
 
     //Get the text from subject 
-    // This text will probably look like <<use water>> You pour the water on...<<enduse>
-   
     this.response.speak(speechOutput)
     .listen("What would you like to do?")
     .cardRenderer(cardTitle, cardContent);
-    //Output the current location.
+    
     
   },
   'AMAZON.HelpIntent': function() {

@@ -101,7 +101,7 @@
 				},
 				"object": {
 					"name": "object",
-					"value": "key",
+					"value": "water",
 					"resolutions": {
 						"resolutionsPerAuthority": [
 							{
@@ -112,7 +112,7 @@
 								"values": [
 									{
 										"value": {
-											"name": "key",
+											"name": "water",
 											"id": "9460370bb0ca1c98a779b1bcc6861c2c"
 										}
 									}
