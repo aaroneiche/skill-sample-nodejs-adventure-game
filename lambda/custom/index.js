@@ -248,17 +248,18 @@ const handlers = {
       cardContent = speechOutput;
     }else{
       var usage = parseUse(subject, slotValues.object.resolved);
-      speechOutput = usage[1];
+      
+      speechOutput = (usage !== null) ? usage[1] : "Nothing happens";      
       cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
-
-      
+      console.log(speechOutput);
     }
 
     //Get the text from subject 
     this.response.speak(speechOutput)
     .listen("What would you like to do?")
     .cardRenderer(cardTitle, cardContent);
+    this.emit(":responseReady");
     
     
   },
