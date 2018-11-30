@@ -488,6 +488,21 @@ function inventoryNames(event){
   });
 }
 
+// Checks to see if a certain progress value has been accomplished.
+// returns -1 if false, > 0 if true;
+function checkProgress(event,progress_value){
+  return event.session.attributes.progress.indexOf(progress_value);
+}
+
+//Sets a value in progress
+function setProgress(event, progress_value) {
+  if(event.session.attributes.progress.indexOf(value) === -1){
+    return event.session.attributes.progress.push(progress_value);
+  }
+  return true;
+}
+
+
 //Checks to see if this object is in your inventory.
 //Returns the index of the item or -1.
 function checkInventory(objectName,inventory) {
