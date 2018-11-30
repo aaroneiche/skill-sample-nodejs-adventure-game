@@ -1,3 +1,19 @@
+
+
+
+The intention of these updates is to enable a twinery use to exclusively use that tool to write a story.
+All of the Alexa components should be abstractly handled here.
+
+### Progress
+Progress is handled as a value between a subject (usable) and an object (gettable). If blocks check as a pair separated by an underscore `_` with the subject first. For example, if you wanted to check the progress of a player having used the key on the door, you would write the following block: 
+```
+Normal passage text.
+<<if door_key>>
+Text to show only if the door is unlocked
+<<endif>>
+Other additional passage text.
+```
+
 #  Build An Alexa Gamebook Skill
 <img src="https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/fact/header._TTH_.png" />
 

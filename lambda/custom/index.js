@@ -86,18 +86,13 @@ const handlers = {
     var room = currentRoom(this.event);
     console.log(`WhereAmI: in ${JSON.stringify(room)}`);
 
-    // get displayable text
-    // e.g "You are here. [[Go South|The Hall]]" -> "You are here. Go South"
-    // var displayableText = room['_'];
-
-    //Remove collectable items from the description of the room. 
-    var objectRegex = /\$\w+/g;
-    var itemMatches = room['_'].match(objectRegex);
-    var displayableText = room['_'].replace(objectRegex,"");
-
-    let inven = inventoryNames(this.event);
+    let inventory = inventoryNames(this.event);
     
-    displayableText = parseIf(room['_'],inven);
+    //Remove if blocks from text
+    var displayableText = parseIf(room['_'],inventory);
+    
+    //Remove use blocks from text
+    displayableText = parseUse(displayableText);
 
     linksRegex.lastIndex = 0;
     let m;
@@ -247,19 +242,25 @@ const handlers = {
       cardTitle = "Not here";
       cardContent = speechOutput;
     }else{
-      var usage = parseUse(subject, slotValues.object.resolved);
+      var usage = parseUse(subject["_"], slotValues.object.resolved);
       speechOutput = usage[1];
       cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
-
       
+      /*
+      TODO:      
+      set progress so we don't rerender the same thing again.  
+      */
+
+
     }
 
     //Get the text from subject 
     this.response.speak(speechOutput)
-    .listen("What would you like to do?")
     .cardRenderer(cardTitle, cardContent);
     
+    this.emit('WhereAmI');
+
     
   },
   'AMAZON.HelpIntent': function() {
@@ -308,7 +309,7 @@ const handlers = {
     })}`);
     this.response.speak(speechOutput)
       .cardRenderer(cardTitle, cardContent, imageObj);
-    this.emit(':responseReady');
+    this.emit(':responseReady');5
   },
   'AMAZON.RepeatIntent': function() {
     console.log(`RepeatIntent`);
@@ -428,7 +429,7 @@ function getSlotValues(filledSlots) {
   return slotValues;
 }
 
-//parses and includes if blocks in text.
+//Parses and includes if blocks in text.
 function parseIf(inputText,gameVars) {
   var findIfRegex =  /(<<if (\!?\w+?)>>[\s\S]+?<<endif>>)/g;
   var parseIfRegex = /(<<if (\!?\w+?)>>([\s\S]+?)<<endif>>)/;
@@ -464,11 +465,20 @@ function parseIf(inputText,gameVars) {
   return inputText;
 }
 
-//returns the use text from the passage text.
-//returns null if no match.
+// Parses the text for use blocks, returns the text with no use blocks
+// and the use action text if the use object is found.
 function parseUse(inputText, object) {
   var useMatch = new RegExp("<<use " + object + ">>([\\s\\S]+?)<<enduse>>","gim");
-  return useMatch.exec(inputText["_"]);
+  var useBlockRegex = /<<use (.+?)>>[\s\S]+?<<enduse>>/gim; 
+
+  //If there's a matching use block in here, this will return the action text
+  var useObjectText = useMatch.exec(inputText);
+
+  //We'll remove all the use blocks here so they're not in the output text.
+  var cleanText = inputText.replace(useBlockRegex,""); 
+  
+
+  return [cleanText,useObjectText[1]];
 }
 
 //returns an array of names in inventory
