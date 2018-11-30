@@ -14,6 +14,10 @@ Text to show only if the door is unlocked
 Other additional passage text.
 ```
 
+### FollowLink
+The original build of followLink set the users' passage to off of the current passage. The branch modifies followLink to simply return the passage so that the calling method can choose what to do with it.
+
+
 #  Build An Alexa Gamebook Skill
 <img src="https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/fact/header._TTH_.png" />
 
