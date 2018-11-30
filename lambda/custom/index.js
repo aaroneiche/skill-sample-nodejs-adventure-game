@@ -253,6 +253,7 @@ const handlers = {
     //Get the text from subject 
     this.response.speak(speechOutput)
     .cardRenderer(cardTitle, cardContent);
+    this.emit(":responseReady");
     
     //We use the thing, and then the game tells us where we are again.
     this.emit('WhereAmI');

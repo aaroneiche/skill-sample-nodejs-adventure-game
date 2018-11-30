@@ -1,8 +1,46 @@
-
-
-
+=======
+# Fork notes
 The intention of these updates is to enable a twinery use to exclusively use that tool to write a story.
 All of the Alexa components should be abstractly handled here.
+
+I forked this repo in Mid-October, 2018 because I wanted to build an adventure skill. This Fork implements the following:
+
+* Passage Tag functionality: Passages created in twinery can be tagged with `usable`, `gettable`, and `place`. These tags allow the lambda function to parse various actions. Explanation below.
+* Inventory: Using the `gettable` tag on a passage in twinery, a user can add items to their inventory. 
+* Progress: Progress is tracked in the session data. 
+* If statements: If statements can be written against inventory or progress indexes.
+
+## Twinery Passage Tags
+Passages in Twinery allow for tags, and these tags can be referenced within the lambda function. 
+
+### gettable
+`gettable` is an object you can use on something. Once a player has gotten an object, it's no longer gettable. The whole passage object is copied into the inventory. 
+
+Example: `get key`
+
+
+### usable
+`usable` is a subject you can use an object on. 
+
+Example: `use key on door`
+
+
+### place
+`place` is a location the player can go to. 
+
+Example: `go to house`
+
+
+## If blocks
+A very basic implementation of twinery's `<<if >>` block. If will check against the contents of the inventory and progress to determine if the block should show or not. It also supports a `!` (not) operator, such as `<<if !key>>` where the included text will be rendered if the player has not obtained the `key` or progressed past that variable. 
+
+Example:
+If the player's `progress ` contains `door_open` then the text in the block will not be rendered.
+```
+Main passage text, this will always be rendered.
+<<if !door_open>> The door remains closed <<endif>>
+It's very dark in here.
+```
 
 ### Progress
 Progress is handled as a value between a subject (usable) and an object (gettable). If blocks check as a pair separated by an underscore `_` with the subject first. For example, if you wanted to check the progress of a player having used the key on the door, you would write the following block: 
