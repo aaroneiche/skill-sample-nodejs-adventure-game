@@ -89,10 +89,10 @@ const handlers = {
     let inventory = inventoryNames(this.event);
     
     //Remove if blocks from text
-    var displayableText = parseIf(room['_'],inventory);
+    var displayableText = parseIf(room['_'],inventory.concat(this.event.session.attributes.progress));
     
     //Remove use blocks from text
-    displayableText = parseUse(displayableText);
+    displayableText = parseUse(displayableText)[0];
 
     linksRegex.lastIndex = 0;
     let m;
@@ -246,19 +246,15 @@ const handlers = {
       speechOutput = usage[1];
       cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
-      
-      /*
-      TODO:      
-      set progress so we don't rerender the same thing again.  
-      */
-
-
+    
+      setProgress(this.event,slotValues.subject.resolved + "_" + slotValues.object.resolved);
     }
 
     //Get the text from subject 
     this.response.speak(speechOutput)
     .cardRenderer(cardTitle, cardContent);
     
+    //We use the thing, and then the game tells us where we are again.
     this.emit('WhereAmI');
 
     
@@ -476,9 +472,9 @@ function parseUse(inputText, object) {
 
   //We'll remove all the use blocks here so they're not in the output text.
   var cleanText = inputText.replace(useBlockRegex,""); 
-  
 
-  return [cleanText,useObjectText[1]];
+  //Return the clean text, and the usage text, if it exists
+  return [cleanText, ((useObjectText != null) ?useObjectText[1] : null)];
 }
 
 //returns an array of names in inventory
@@ -496,7 +492,7 @@ function checkProgress(event,progress_value){
 
 //Sets a value in progress
 function setProgress(event, progress_value) {
-  if(event.session.attributes.progress.indexOf(value) === -1){
+  if(event.session.attributes.progress.indexOf(progress_value) === -1){
     return event.session.attributes.progress.push(progress_value);
   }
   return true;
