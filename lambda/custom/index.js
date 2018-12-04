@@ -6,8 +6,11 @@ const TableName = null // story.replace('.html','').replace(/\s/g, "-");
 var $twine = null;
 const linksRegex = /\[\[([^\|\]]*)\|?([^\]]*)\]\]/g;
 
+var debug = false;
+
+
 module.exports.handler = (event, context, callback) => {
-  console.log(`handler: ${JSON.stringify(event.request)}`);
+  if(debug) console.log(`handler: ${JSON.stringify(event.request)}`);
 
   // read the Twine 2 (Harlowe) story into JSON
   var fs = require('fs');
@@ -218,7 +221,6 @@ const handlers = {
   'Use': function(){
     // Use _object_ on _subject_
     var slotValues = getSlotValues(this.event.request.intent.slots);
-    console.log(slotValues);
     
     //First check that you have object
     var hasObject = (inventoryNames(this.event).indexOf(slotValues.object.resolved) > -1);
@@ -349,7 +351,7 @@ function followLink(event, direction_or_array) {
   var result_passage = undefined;
 
   directions.every(function(direction, index, _arr) {
-    console.log(`followLink: try '${direction}' from ${room['$']['name']}`);
+    if(debug) console.log(`followLink: try '${direction}' from ${room['$']['name']}`);
     var directionRegex = new RegExp(`.*${direction}.*`, 'i');
     let links;
     
@@ -360,9 +362,9 @@ function followLink(event, direction_or_array) {
       }
       result = links[1].match(directionRegex);
       var target = links[2] || links[1];
-      console.log(`followLink: check ${links[1]} (${target}) for ${direction} => ${result} `);
+      if(debug) console.log(`followLink: check ${links[1]} (${target}) for ${direction} => ${result} `);
       if (result) {
-        console.log(`followLink: That would be ${target}`);
+        if(debug) console.log(`followLink: That would be ${target}`);
         for (var i = 0; i < $twine.length; i++) {
           if ($twine[i]['$']['name'].toLowerCase() === target.toLowerCase()) {
             result_passage = $twine[i]; //return the found passage.
@@ -387,7 +389,7 @@ function getSlotValues(filledSlots) {
   //and if it's a word that is in your slot values - .isValidated
   let slotValues = {};
 
-  console.log('The filled slots: ' + JSON.stringify(filledSlots));
+  if(debug) console.log('The filled slots: ' + JSON.stringify(filledSlots));
   Object.keys(filledSlots).forEach(function(item) {
     //console.log("item in filledSlots: "+JSON.stringify(filledSlots[item]));
     var name = filledSlots[item].name;
