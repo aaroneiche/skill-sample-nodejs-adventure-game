@@ -11,7 +11,7 @@ I forked this repo in Mid-October, 2018 because I wanted to build an adventure s
 * If statements: If statements can be written against inventory or progress indexes.
 
 ## Twinery Passage Tags
-Passages in Twinery allow for tags, and these tags can be referenced within the lambda function. 
+Passages in Twinery allow for tags, and this fork uses tags to determine how the player can interact with a given passage. A passage can be `gettable`, `usable`, or a `place`.
 
 ### gettable
 `gettable` is an object you can use on something. Once a player has gotten an object, it's no longer gettable. The whole passage object is copied into the inventory. 
@@ -32,14 +32,24 @@ Example: `go to house`
 
 
 ## If blocks
-A very basic implementation of twinery's `<<if >>` block. If will check against the contents of the inventory and progress to determine if the block should show or not. It also supports a `!` (not) operator, such as `<<if !key>>` where the included text will be rendered if the player has not obtained the `key` or progressed past that variable. 
+A very basic implementation of twinery's `<<if var>>` block. If will check against the contents of `inventory` and `progress` to determine if the block should show or not. It also supports a `!` (not) operator, such as `<<if !key>>` where the included text will be rendered if the player has not obtained the `key` or progressed past that variable. Blocks are closed with a `<<endif>>` tag. This implementation does not currently support twinery's `<<else>>` block.
 
 Example:
-If the player's `progress ` contains `door_open` then the text in the block will not be rendered.
+If the player's `progress ` contains `door_key` (meaning the user used the key on the door) then the text in the block will not be rendered.
 ```
 Main passage text, this will always be rendered.
-<<if !door_open>> The door remains closed <<endif>>
+<<if !door_key>> The door remains closed <<endif>>
 It's very dark in here.
+```
+
+## Use blocks
+Use blocks are the text that is spoken when a player uses an object on a subject. Use blocks are defined by angle bracket delimiters similar to if blocks with the object being placed in the opening tag.
+
+Example:
+If the player uses `key` on a passage where `door` is linked (or in the current passage, if it's a `place`) the text in the `<<use key>>` block will be rendered
+```
+A beautiful, heavy red door, with a shining gold lock on it. 
+<<use key>>You insert the key into the lock, and turn it carefully. The lock releases with a thunk, and the door opens<<enduse>>
 ```
 
 ### Progress

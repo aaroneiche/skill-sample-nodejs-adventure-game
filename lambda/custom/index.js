@@ -75,7 +75,7 @@ const handlers = {
     this.event.session.attributes['progress'] =[];
     this.emit('WhereAmI');
   },
-  'WhereAmI': function() {
+  'WhereAmI': function(longtext) {
     var speechOutput = "";
     if (this.event.session.attributes['room'] === undefined) {
       // you just started so you are in the first room
@@ -130,6 +130,7 @@ const handlers = {
     var reducedContent = `${firstSentence}. ${reprompt}.`;
 
     // say less if you've been here before
+    console.log(longtext);
     if (this.event.session.attributes['visited'] === undefined) {
       this.event.session.attributes['visited'] = [];
     }
@@ -245,7 +246,9 @@ const handlers = {
       cardContent = speechOutput;
     }else{
       var usage = parseUse(subject["_"], slotValues.object.resolved);
-      speechOutput = usage[1];
+      
+      speechOutput = usage[1]; //TODO: Add whereami text to speech after explaining.
+
       cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
     
@@ -257,14 +260,11 @@ const handlers = {
     .cardRenderer(cardTitle, cardContent);
     this.emit(":responseReady");
     
-    //We use the thing, and then the game tells us where we are again.
-    this.emit('WhereAmI');
-
     
   },
   'AMAZON.HelpIntent': function() {
-    var speechOutput = 'This is the Sample Gamebook Skill. ';
-    var reprompt = 'Say where am I, to hear me speak.';
+    var speechOutput = 'This is the North Pole Adventure game';
+    var reprompt = 'You can say things like Go to house, or get key, or use key on door. If you want to know where you are, you can say Look or Where am I?';
     speechOutput = speechOutput + reprompt;
     var cardTitle = 'Help.';
     var cardContent = speechOutput;
