@@ -48,3 +48,24 @@ describe("Tests the Get function",function(){
     })
 })
 
+
+// describe("Tests the Room Text function",function(){
+
+//     it("Tests Shed Room", function() {
+
+//         var event_data = require('./event.json');
+
+//         lambdaLocal.execute({
+//             event: event_data,
+//             lambdaPath: path.join(__dirname, '../index.js'),
+//             timeoutMs: 3000
+//         }).then(function(response) {
+//             // console.log(response);
+//             // response.response.card.title.should.equal("You use water");
+//             done();
+            
+//         }).catch(function(err) {
+//             console.log(err);
+//         });
+//     })
+// })

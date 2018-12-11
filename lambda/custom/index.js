@@ -214,6 +214,8 @@ const handlers = {
       var cardTitle = speechOutput;
       var cardContent = "Try something else";
 
+      // roomTextOb = roomText(this.event);
+
       this.response.speak(speechOutput)
         .listen("What would you like to do?")
         .cardRenderer(cardTitle, cardContent);
@@ -255,16 +257,26 @@ const handlers = {
       setProgress(this.event,slotValues.subject.resolved + "_" + slotValues.object.resolved);
     }
 
-    //Get the text from subject 
-    this.response.speak(speechOutput)
-    .cardRenderer(cardTitle, cardContent);
-    this.emit(":responseReady");
+    var roomTextData = roomText(this.event);
+    // console.log(roomTextData);
+
+    // "displayableText": displayableText,
+    // "reducedText": reducedContent,
+    // "reprompt": reprompt,
+    // "cardTitle": cardTitle,
+    // "cardContent": cardContent
     
+    //Get the text from subject 
+    this.response.speak(speechOutput + roomTextData.displayableText)
+    .listen(roomTextData.reprompt)
+    .cardRenderer(roomTextData.cardTitle, roomTextData.cardContent);
+    this.emit(":responseReady");
     
   },
   'AMAZON.HelpIntent': function() {
     var speechOutput = 'This is the North Pole Adventure game';
-    var reprompt = 'You can say things like Go to house, or get key, or use key on door. If you want to know where you are, you can say Look or Where am I?';
+    var reprompt = `You can say things like Go to house, or get key, or use key on door. 
+    If you want to know where you are, you can say Look or Where am I?`;
     speechOutput = speechOutput + reprompt;
     var cardTitle = 'Help.';
     var cardContent = speechOutput;
@@ -514,4 +526,44 @@ function checkInventory(objectName,inventory) {
     }
   });
   return objectIndex;
+}
+
+function roomText(event) {
+  var room = currentRoom(event);
+  
+  let inventory = inventoryNames(event);
+  let progress = event.session.attributes.progress
+
+  //Remove if blocks from text - passes in inventory + progress;
+  var displayableText = parseIf(room['_'],inventory.concat(progress));
+  
+  //Remove use blocks from text
+  displayableText = parseUse(displayableText)[0];
+
+  linksRegex.lastIndex = 0;
+  let m;
+  while ((m = linksRegex.exec(displayableText)) !== null) {
+    displayableText = displayableText.replace(m[0], m[1]);
+    linksRegex.lastIndex = 0;
+  }
+  // strip html
+  displayableText = displayableText.replace(/<\/?[^>]+(>|$)/g, "");
+  displayableText = displayableText.replace("&amp;", "and");
+
+  var firstSentence = displayableText.split('.')[0];
+  var lastSentence = displayableText.replace('\n',' ').split('. ').pop();
+  var reducedContent = `${firstSentence}.`;
+
+  var cardTitle = firstSentence;
+    var imageObj = undefined;
+
+  linksRegex.lastIndex = 0;
+
+  return {
+    "displayableText": displayableText,
+    "reducedText": lastSentence,
+    "reprompt": lastSentence,
+    "cardTitle": cardTitle,
+    "cardContent": lastSentence
+  }
 }
