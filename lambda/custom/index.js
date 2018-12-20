@@ -267,11 +267,42 @@ const handlers = {
     // "cardContent": cardContent
     
     //Get the text from subject 
-    this.response.speak(speechOutput + roomTextData.displayableText)
+    this.response.speak(speechOutput)
     .listen(roomTextData.reprompt)
     .cardRenderer(roomTextData.cardTitle, roomTextData.cardContent);
     this.emit(":responseReady");
     
+  },
+  'Look': function() {
+    // get the full room text,
+    
+    var subject = {};
+
+    var slotValues = getSlotValues(this.event.request.intent.slots);
+    if(slotValues.target.resolved != undefined){
+      subject = getPassageText(this.event, slotValues.target.resolved);
+      
+      //We tried looking, but didn't find aynthing
+      if(subject == undefined){
+        subject = {
+          "displayableText": "You don't see anything",
+          "reducedText": "You don't see anything",
+          "reprompt": "You don't see anything",
+          "cardTitle": "Looking",
+          "cardContent": "You don't see anything"
+        }
+      }
+
+    }else{
+      //Just look here.
+      subject = roomText(this.event); 
+    }
+
+      
+    this.response.speak(subject.displayableText)
+    .listen("What would you like to do?")
+    .cardRenderer(subject.cardTitle, subject.cardContent);
+    this.emit(":responseReady");
   },
   'AMAZON.HelpIntent': function() {
     var speechOutput = 'This is the North Pole Adventure game';
@@ -536,6 +567,57 @@ function roomText(event) {
 
   //Remove if blocks from text - passes in inventory + progress;
   var displayableText = parseIf(room['_'],inventory.concat(progress));
+  
+  //Remove use blocks from text
+  displayableText = parseUse(displayableText)[0];
+
+  linksRegex.lastIndex = 0;
+  let m;
+  while ((m = linksRegex.exec(displayableText)) !== null) {
+    displayableText = displayableText.replace(m[0], m[1]);
+    linksRegex.lastIndex = 0;
+  }
+  // strip html
+  displayableText = displayableText.replace(/<\/?[^>]+(>|$)/g, "");
+  displayableText = displayableText.replace("&amp;", "and");
+
+  var firstSentence = displayableText.split('.')[0];
+  var lastSentence = displayableText.replace('\n',' ').split('. ').pop();
+  var reducedContent = `${firstSentence}.`;
+
+  var cardTitle = firstSentence;
+    var imageObj = undefined;
+
+  linksRegex.lastIndex = 0;
+
+  return {
+    "displayableText": displayableText,
+    "reducedText": lastSentence,
+    "reprompt": lastSentence,
+    "cardTitle": cardTitle,
+    "cardContent": lastSentence
+  }
+}
+
+//Like roomText (which will be deprecated) but works for given passage name.
+function getPassageText(event,passageName) {
+
+  //Get the passage data for this passage, relative to our location
+  var p = followLink(event, passageName);
+
+  //passage is invalid
+  if(p == undefined) {
+    return undefined;
+  }
+
+  // var room = currentRoom(event);
+  var passageText = p['_'];
+  
+  let inventory = inventoryNames(event);
+  let progress = event.session.attributes.progress
+
+  //Remove if blocks from text - passes in inventory + progress;
+  var displayableText = parseIf(passageText,inventory.concat(progress));
   
   //Remove use blocks from text
   displayableText = parseUse(displayableText)[0];
