@@ -192,7 +192,7 @@ const handlers = {
       
       //add to inventory.
       this.event.session.attributes['inventory'].push(passage);
-      speechOutput = "You got " + slotValues['object_name']['resolved'];
+      speechOutput = "You get the " + slotValues['object_name']['resolved'];
       cardContent = speechOutput;  
     }
 
@@ -226,7 +226,7 @@ const handlers = {
     var slotValues = getSlotValues(this.event.request.intent.slots);
     
     //First check that you have object
-    var hasObject = (inventoryNames(this.event).indexOf(slotValues.object.resolved) > -1);
+    var hasObject = (inventoryNames(this.event).indexOf(slotValues.object.resolved.toLowerCase()) > -1);
 
     //Next check that subject is accessible from here
     var subject = followLink(this.event, slotValues['subject']['resolved']);
@@ -295,7 +295,7 @@ const handlers = {
 
     }else{
       //Just look here.
-      subject = roomText(this.event); 
+      subject = roomText(this.event);
     }
 
       
@@ -526,7 +526,7 @@ function parseUse(inputText, object) {
 //returns an array of names in inventory
 function inventoryNames(event){
   return event.session.attributes['inventory'].map(o=>{
-    return o['$'].name;
+    return o['$'].name.toLowerCase();
   });
 }
 
