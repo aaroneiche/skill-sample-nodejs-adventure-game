@@ -254,7 +254,7 @@ const handlers = {
       cardTitle = "You use " + slotValues.object.resolved;
       cardContent = speechOutput;
     
-      setProgress(this.event,slotValues.subject.resolved + "_" + slotValues.object.resolved);
+      setProgress(this.event,slotValues.subject.resolved + "_" + slotValues.object.resolved.replace(" ","_"));
     }
 
     var roomTextData = roomText(this.event);
@@ -351,7 +351,7 @@ const handlers = {
     })}`);
     this.response.speak(speechOutput)
       .cardRenderer(cardTitle, cardContent, imageObj);
-    this.emit(':responseReady');5
+    this.emit(':responseReady');
   },
   'AMAZON.RepeatIntent': function() {
     console.log(`RepeatIntent`);
@@ -510,7 +510,8 @@ function parseIf(inputText,gameVars) {
 // Parses the text for use blocks, returns the text with no use blocks
 // and the use action text if the use object is found.
 function parseUse(inputText, object) {
-  var useMatch = new RegExp("<<use " + object + ">>([\\s\\S]+?)<<enduse>>","gim");
+  var term = (object == undefined)?  "" : object.replace(" ","_");
+  var useMatch = new RegExp("<<use " + term + ">>([\\s\\S]+?)<<enduse>>","gim");
   var useBlockRegex = /<<use (.+?)>>[\s\S]+?<<enduse>>/gim; 
 
   //If there's a matching use block in here, this will return the action text
