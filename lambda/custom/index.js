@@ -236,6 +236,8 @@ const handlers = {
     var cardTitle;
     var cardContent;
 
+    var hasEnd = false;
+
     if(hasObject == false){
       //Say that you don't have it.
       speechOutput = "You don't have " + slotValues.object.resolved + " in your inventory";
@@ -249,6 +251,9 @@ const handlers = {
     }else{
       var usage = parseUse(subject["_"], slotValues.object.resolved);
       
+      //check if this is the end of the game.
+      hasEnd = parseEndgame(usage[1]);
+
       speechOutput = usage[1]; //TODO: Add whereami text to speech after explaining.
 
       cardTitle = "You use " + slotValues.object.resolved;
@@ -267,11 +272,18 @@ const handlers = {
     // "cardContent": cardContent
     
     //Get the text from subject 
-    this.response.speak(speechOutput)
-    .listen(roomTextData.reprompt)
-    .cardRenderer(roomTextData.cardTitle, roomTextData.cardContent);
-    this.emit(":responseReady");
-    
+    if(hasEnd){
+      speechOutput = speechOutput.replace("<<endgame>>","");
+      this.response.speak(speechOutput)
+      .cardRenderer(roomTextData.cardTitle, roomTextData.cardContent);
+      this.emit(":responseReady");
+    }else{
+      this.response.speak(speechOutput)
+      .listen(roomTextData.reprompt)
+      .cardRenderer(roomTextData.cardTitle, roomTextData.cardContent);
+      this.emit(":responseReady");
+    }
+       
   },
   'Look': function() {
     // get the full room text,
@@ -522,6 +534,12 @@ function parseUse(inputText, object) {
 
   //Return the clean text, and the usage text, if it exists
   return [cleanText, ((useObjectText != null) ?useObjectText[1] : null)];
+}
+
+function parseEndgame(inputText) {
+  var search = /<<endgame>>/g;
+  inputText = (inputText != null) ? inputText : ""
+  return inputText.match(search) != null;
 }
 
 //returns an array of names in inventory
